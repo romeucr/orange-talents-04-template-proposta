@@ -1,4 +1,4 @@
-package br.com.zupacademy.romeu.proposta.proposta;
+package br.com.zupacademy.romeu.proposta;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
