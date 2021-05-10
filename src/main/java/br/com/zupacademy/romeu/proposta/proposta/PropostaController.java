@@ -24,7 +24,7 @@ public class PropostaController {
   public ResponseEntity<?> novaProposta(@RequestBody @Valid NovaPropostaRequest novaPropostaRequest,
                                         UriComponentsBuilder uriBuilder) {
 
-    Proposta proposta = novaPropostaRequest.toModel();
+    Proposta proposta = novaPropostaRequest.toModel(propostaRepository);
     propostaRepository.save(proposta);
 
     URI uri = uriBuilder.path("/propostas/{id}")

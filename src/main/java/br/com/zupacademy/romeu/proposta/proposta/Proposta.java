@@ -1,6 +1,6 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
-import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOrCNPJ;
+import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,7 +20,7 @@ public class Proposta {
   private Long id;
 
   @NotBlank
-  @CPFOrCNPJ
+  @CPFOuCNPJ
   private String documento;
 
   @NotBlank @Email

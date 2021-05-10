@@ -21,7 +21,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = { })
 @Target({ FIELD })
 @Retention(RUNTIME)
-public @interface CPFOrCNPJ {
+public @interface CPFOuCNPJ {
 
   String message() default "CPF ou CNPJ inválido";
 

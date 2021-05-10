@@ -1,22 +1,18 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
-import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOrCNPJ;
+import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
+import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.EntidadeDuplicadaException;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
-
-import static javax.persistence.GenerationType.IDENTITY;
+import java.util.Optional;
 
 public class NovaPropostaRequest {
 
-  @NotBlank
-  @CPFOrCNPJ
+  @NotBlank @CPFOuCNPJ
   private String documento;
 
   @NotBlank @Email
@@ -46,7 +42,11 @@ public class NovaPropostaRequest {
     this.salario = salario;
   }
 
-  public Proposta toModel() {
+  public Proposta toModel(PropostaRepository propostaRepository) {
+    Optional<Proposta> optProposta = propostaRepository.findByDocumento(this.documento);
+    if (optProposta.isPresent())
+      throw new EntidadeDuplicadaException("Já existe proposta para este documento cadastrada na base de dados");
+
     return new Proposta(documento, email, nome, endereco, salario);
   }
 
