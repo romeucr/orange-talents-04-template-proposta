@@ -1,10 +1,9 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
+import br.com.zupacademy.romeu.proposta.proposta.enums.StatusProposta;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -34,6 +33,9 @@ public class Proposta {
 
   @NotNull @Positive
   private BigDecimal salario;
+
+  @Enumerated(EnumType.STRING)
+  private StatusProposta status;
 
   /**
    * @deprecated pra uso do hibernate somente
@@ -72,5 +74,13 @@ public class Proposta {
 
   public BigDecimal getSalario() {
     return salario;
+  }
+
+  public StatusProposta getStatus() {
+    return status;
+  }
+
+  public void setStatus(StatusProposta status) {
+    this.status = status;
   }
 }
