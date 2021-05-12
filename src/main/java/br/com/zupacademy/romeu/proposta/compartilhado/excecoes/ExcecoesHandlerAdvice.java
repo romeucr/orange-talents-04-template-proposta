@@ -1,6 +1,5 @@
 package br.com.zupacademy.romeu.proposta.compartilhado.excecoes;
 
-import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.EntidadeDuplicadaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;

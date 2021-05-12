@@ -1,6 +1,8 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.AnalisePropostaException;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
+import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaResponse;
 import br.com.zupacademy.romeu.proposta.proposta.enums.StatusProposta;
 
 import javax.persistence.*;
@@ -82,5 +84,13 @@ public class Proposta {
 
   public void setStatus(StatusProposta status) {
     this.status = status;
+  }
+
+  public void verificaAnaliseEAtualizaStatus(AnalisePropostaResponse analiseResponse) {
+    if (this.id.equals(analiseResponse.getIdProposta())) {
+      this.status = analiseResponse.getResultadoSolicitacao().defineStatusProposta();
+    } else {
+      throw new AnalisePropostaException("A Análise recebida não pertence à Proposta ID = " + this.id);
+    }
   }
 }

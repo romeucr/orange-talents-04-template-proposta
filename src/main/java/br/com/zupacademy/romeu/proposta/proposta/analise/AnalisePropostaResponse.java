@@ -3,12 +3,12 @@ package br.com.zupacademy.romeu.proposta.proposta.analise;
 public class AnalisePropostaResponse {
   private String documento;
   private String nome;
-  private String idProposta;
-  private String resultadoSolicitacao;
+  private Long idProposta;
+  private StatusAnalise resultadoSolicitacao;
 
   public AnalisePropostaResponse(){}
 
-  public AnalisePropostaResponse(String documento, String nome, String idProposta, String resultadoSolicitacao) {
+  public AnalisePropostaResponse(String documento, String nome, Long idProposta, StatusAnalise resultadoSolicitacao) {
     this.documento = documento;
     this.nome = nome;
     this.idProposta = idProposta;
@@ -23,21 +23,11 @@ public class AnalisePropostaResponse {
     return nome;
   }
 
-  public String getIdProposta() {
+  public Long getIdProposta() {
     return idProposta;
   }
 
-  public String getResultadoSolicitacao() {
+  public StatusAnalise getResultadoSolicitacao() {
     return resultadoSolicitacao;
-  }
-
-  @Override
-  public String toString() {
-    return "AnalisePropostaResponse{" +
-            "documento='" + documento + '\'' +
-            ", nome='" + nome + '\'' +
-            ", idProposta='" + idProposta + '\'' +
-            ", resultadoSolicitacao='" + resultadoSolicitacao + '\'' +
-            '}';
   }
 }

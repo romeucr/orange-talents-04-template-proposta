@@ -1,7 +1,7 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
-import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.EntidadeDuplicadaException;
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeDuplicadaException;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
