@@ -25,4 +25,10 @@ public class ExcecoesHandlerAdvice {
     return ResponseEntity.unprocessableEntity().build();
   }
 
+  @ExceptionHandler(AnalisePropostaException.class)
+  public ResponseEntity<?> handle(AnalisePropostaException exception) {
+    /* não é para retornar nenhum erro, apenas o código 422 UNPROCESSABLE ENTITY */
+    return ResponseEntity.unprocessableEntity().build();
+  }
+
 }

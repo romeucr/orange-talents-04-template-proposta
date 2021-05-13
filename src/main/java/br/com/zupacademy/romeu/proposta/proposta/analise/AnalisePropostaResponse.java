@@ -4,11 +4,11 @@ public class AnalisePropostaResponse {
   private String documento;
   private String nome;
   private Long idProposta;
-  private StatusAnalise resultadoSolicitacao;
+  private AnaliseStatus resultadoSolicitacao;
 
   public AnalisePropostaResponse(){}
 
-  public AnalisePropostaResponse(String documento, String nome, Long idProposta, StatusAnalise resultadoSolicitacao) {
+  public AnalisePropostaResponse(String documento, String nome, Long idProposta, AnaliseStatus resultadoSolicitacao) {
     this.documento = documento;
     this.nome = nome;
     this.idProposta = idProposta;
@@ -27,7 +27,7 @@ public class AnalisePropostaResponse {
     return idProposta;
   }
 
-  public StatusAnalise getResultadoSolicitacao() {
+  public AnaliseStatus getResultadoSolicitacao() {
     return resultadoSolicitacao;
   }
 }
