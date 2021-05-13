@@ -1,7 +1,6 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
 import br.com.zupacademy.romeu.proposta.cartao.Cartao;
-import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.AnalisePropostaException;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaResponse;
 import br.com.zupacademy.romeu.proposta.proposta.enums.PropostaStatus;
@@ -18,14 +17,16 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 public class Proposta {
 
-  @Id @GeneratedValue(strategy = IDENTITY)
+  @Id
+  @GeneratedValue(strategy = IDENTITY)
   private Long id;
 
   @NotBlank
   @CPFOuCNPJ
   private String documento;
 
-  @NotBlank @Email
+  @NotBlank
+  @Email
   private String email;
 
   @NotBlank
@@ -34,7 +35,8 @@ public class Proposta {
   @NotBlank
   private String endereco;
 
-  @NotNull @Positive
+  @NotNull
+  @Positive
   private BigDecimal salario;
 
   @Enumerated(EnumType.STRING)
@@ -46,7 +48,8 @@ public class Proposta {
   /**
    * @deprecated pra uso do hibernate somente
    */
-  public Proposta(){}
+  public Proposta() {
+  }
 
   public Proposta(@NotBlank String documento, @NotBlank @Email String email,
                   @NotBlank String nome, @NotBlank String endereco,
@@ -95,12 +98,8 @@ public class Proposta {
   }
 
   public void verificaAnaliseEAtualizaStatus(AnalisePropostaResponse analiseResponse) {
-    if (this.id.equals(analiseResponse.getIdProposta())) {
+    if (this.id.equals(analiseResponse.getIdProposta()))
       this.status = analiseResponse.getResultadoSolicitacao().defineStatusProposta();
-    } else {
-      System.out.println("propostaId:" + this.id + " - " + "propostaId Analise: " + analiseResponse.getIdProposta());
-      //throw new AnalisePropostaException("A Análise recebida não pertence à Proposta ID = " + this.id);
-    }
   }
 
 }

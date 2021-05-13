@@ -3,7 +3,6 @@ package br.com.zupacademy.romeu.proposta.cartao;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -35,5 +34,25 @@ public class Cartao {
     this.emitidoEm = emitidoEm;
     this.limite = limite;
     this.proposta = proposta;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public String getNumero() {
+    return numero;
+  }
+
+  public LocalDateTime getEmitidoEm() {
+    return emitidoEm;
+  }
+
+  public Integer getLimite() {
+    return limite;
+  }
+
+  public Proposta getProposta() {
+    return proposta;
   }
 }

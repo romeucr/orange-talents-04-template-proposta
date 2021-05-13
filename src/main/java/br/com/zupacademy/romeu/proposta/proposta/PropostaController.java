@@ -3,27 +3,25 @@ package br.com.zupacademy.romeu.proposta.proposta;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaClient;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaRequest;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaResponse;
+import br.com.zupacademy.romeu.proposta.proposta.enums.PropostaStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/propostas")
 public class PropostaController {
 
   @Autowired
@@ -34,7 +32,7 @@ public class PropostaController {
 
   private final Logger logger = LoggerFactory.getLogger(PropostaController.class);
 
-  @PostMapping
+  @PostMapping("/propostas")
   @Transactional
   public ResponseEntity<?> novaProposta(@RequestBody @Valid NovaPropostaRequest novaPropostaRequest,
                                         UriComponentsBuilder uriBuilder) throws JsonProcessingException {
@@ -88,5 +86,22 @@ public class PropostaController {
 
       return ResponseEntity.created(uri).build();
     }
+  }
+
+  @GetMapping("/propostas/{id}")
+  public ResponseEntity<?> consultaProposta(@PathVariable(name = "id") Long id) {
+    Optional<Proposta> optProposta = propostaRepository.findById(id);
+
+    if (optProposta.isPresent()) {
+      Proposta proposta = optProposta.get();
+
+      /* Se a proposta é não elegível, não tem cartão */
+      if (proposta.getStatus().equals(PropostaStatus.NAO_ELEGIVEL))
+        return ResponseEntity.ok().body(new ConsultaPropostaNaoElegivelResponse(proposta));
+
+      return ResponseEntity.ok().body(new ConsultaPropostaResponse(proposta));
+    }
+
+    return ResponseEntity.notFound().build();
   }
 }

@@ -43,13 +43,4 @@ public class CartaoResponse {
     return new Cartao(this.id, this.emitidoEm, this.limite, proposta);
   }
 
-  @Override
-  public String toString() {
-    return "CartaoResponse{" +
-            "id='" + id + '\'' +
-            ", emitidoEm=" + emitidoEm +
-            ", limite=" + limite +
-            ", idProposta='" + idProposta + '\'' +
-            '}';
-  }
 }
