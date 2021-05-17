@@ -1,10 +1,13 @@
 package br.com.zupacademy.romeu.proposta.cartao;
 
+import br.com.zupacademy.romeu.proposta.biometria.Biometria;
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeDuplicadaException;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 public class Cartao {
@@ -24,6 +27,9 @@ public class Cartao {
   @NotNull
   @OneToOne(mappedBy = "cartao")
   private Proposta proposta;
+
+  @OneToMany
+  private Set<Biometria> biometria;
 
   /* @deprecated para uso do hibernate
    * */
@@ -54,5 +60,16 @@ public class Cartao {
 
   public Proposta getProposta() {
     return proposta;
+  }
+
+  public Set<Biometria> getBiometria() {
+    return biometria;
+  }
+
+  public void adicionaBiometria(Biometria biometria) {
+    if (this.biometria.contains(biometria)) {
+      throw new EntidadeDuplicadaException("Biometria:", "A biometria informada já está cadastrada no cartão informado");
+    }
+    this.biometria.add(biometria);
   }
 }

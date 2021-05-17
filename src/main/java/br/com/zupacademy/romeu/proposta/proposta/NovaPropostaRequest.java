@@ -45,7 +45,7 @@ public class NovaPropostaRequest {
   public Proposta toModel(PropostaRepository propostaRepository) {
     Optional<Proposta> optProposta = propostaRepository.findByDocumento(this.documento);
     if (optProposta.isPresent())
-      throw new EntidadeDuplicadaException("Já existe proposta para este documento cadastrada na base de dados");
+      throw new EntidadeDuplicadaException("documento", "Já existe proposta para este documento cadastrada na base de dados");
 
     return new Proposta(documento, email, nome, endereco, salario);
   }

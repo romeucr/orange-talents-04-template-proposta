@@ -16,8 +16,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.Optional;
 
@@ -43,14 +41,14 @@ public class PropostaController {
      * */
     Proposta proposta = novaPropostaRequest.toModel(propostaRepository);
 
+    propostaRepository.save(proposta);
+    logger.info("Proposta ID " + proposta.getId() + " criada com sucesso!");
+
+    // faz a consulta de análise
+    AnalisePropostaRequest analiseRequest = new AnalisePropostaRequest(
+            proposta.getDocumento(), proposta.getNome(), proposta.getId().toString());
+
     try {
-      propostaRepository.save(proposta);
-      logger.info("Proposta ID " + proposta.getId() + " criada com sucesso!");
-
-      // faz a consulta de análise
-      AnalisePropostaRequest analiseRequest = new AnalisePropostaRequest(
-              proposta.getDocumento(), proposta.getNome(), proposta.getId().toString());
-
       // resposta da análise
       AnalisePropostaResponse analiseResponse = analisePropostaClient.analisaProposta(analiseRequest);
       logger.info("Proposta ID " + proposta.getId() + " enviada para análise com sucesso!");
@@ -58,12 +56,6 @@ public class PropostaController {
       // Verifica se a análise recebida corresponde à proposta e atualiza o status caso positivo
       proposta.verificaAnaliseEAtualizaStatus(analiseResponse);
       logger.info("Proposta ID " + proposta.getId() + " atualizada com sucesso! Status: " + proposta.getStatus());
-
-      URI uri = uriBuilder.path("/propostas/{id}")
-              .buildAndExpand(proposta.getId())
-              .toUri();
-
-      return ResponseEntity.created(uri).build();
 
     } catch (FeignException.UnprocessableEntity ex) {
       logger.info("Proposta ID " + proposta.getId() + " enviada para análise com sucesso!");
@@ -79,13 +71,14 @@ public class PropostaController {
 
       return ResponseEntity.unprocessableEntity().build();
     } catch (FeignException ex) {
-
-      URI uri = uriBuilder.path("/propostas/{id}")
-              .buildAndExpand(proposta.getId())
-              .toUri();
-
-      return ResponseEntity.created(uri).build();
+      // se o sistema de análise estiver offline, não faz nada.
     }
+
+    URI uri = uriBuilder.path("/propostas/{id}")
+            .buildAndExpand(proposta.getId())
+            .toUri();
+
+    return ResponseEntity.created(uri).build();
   }
 
   @GetMapping("/propostas/{id}")

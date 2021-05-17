@@ -4,6 +4,7 @@ import br.com.zupacademy.romeu.proposta.cartao.Cartao;
 import br.com.zupacademy.romeu.proposta.cartao.CartaoRepository;
 import br.com.zupacademy.romeu.proposta.cartao.CartaoResponse;
 import br.com.zupacademy.romeu.proposta.cartao.VerificaCartaoClient;
+import br.com.zupacademy.romeu.proposta.compartilhado.Ofuscadores;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
 import br.com.zupacademy.romeu.proposta.proposta.PropostaRepository;
 import br.com.zupacademy.romeu.proposta.proposta.enums.PropostaStatus;
@@ -46,7 +47,7 @@ public class AssignarCartaoProposta {
     for (Optional<Proposta> p : listaOptPropostas) {
       p.ifPresent(listaPropostas::add);
     }
-    logger.info(listaPropostas.size() + " propostas com status ELEGIVEL e com cartões pendentes.");
+    logger.info(listaPropostas.size() + " proposta(s) com status ELEGIVEL e com cartões pendentes.");
 
     /* Para executar somente se houver propostas com cartão pendente */
     if (listaPropostas.size() > 0) {
@@ -56,10 +57,12 @@ public class AssignarCartaoProposta {
               .forEach(p -> cartoesResponse.add(verificaCartaoClient.verificaCartao(p.getId())));
 
       // para cada cartaoResponse, criando um cartao, salvando no banco e atualizando a proposta relativa
-      cartoesResponse.forEach(cartaoResp -> {
+      cartoesResponse.stream().parallel()
+              .forEach(cartaoResp -> {
         Cartao cartao = cartaoResp.toModel(propostaRepository);
         cartaoRepository.save(cartao);
-        logger.info("Cartão ID " + cartaoResp.getId() + " gravado com sucesso!");
+        logger.info("Cartão ID " +
+                Ofuscadores.ofuscaIdDoCartao(cartaoResp.getId()) + " gravado com sucesso!");
 
         Optional<Proposta> optProposta = propostaRepository.findById(Long.parseLong(cartaoResp.getIdProposta()));
         Proposta proposta = optProposta.get();

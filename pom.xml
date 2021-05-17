@@ -63,6 +63,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>desafio-proposta</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

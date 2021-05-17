@@ -1,10 +1,10 @@
 package br.com.zupacademy.romeu.proposta.compartilhado.excecoes;
 
-public class EntidadeDuplicadaException extends RuntimeException {
+public class EntidadeNaoEncontradaException extends RuntimeException {
 
   private String campo;
 
-  public EntidadeDuplicadaException(String campo, String msg) {
+  public EntidadeNaoEncontradaException(String campo, String msg) {
     super(msg);
     this.campo = campo;
   }

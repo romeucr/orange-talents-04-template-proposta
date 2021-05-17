@@ -53,27 +53,32 @@ public class RealizarAnaliseProposta {
 
     // criando uma lista de analises pendentes
     List<AnalisePropostaRequest> analisesPendentes = new ArrayList<>();
-    listaPropostas.forEach(proposta ->
+    listaPropostas.stream().parallel().forEach(proposta ->
             analisesPendentes.add(new AnalisePropostaRequest(proposta.getDocumento(),
                     proposta.getNome(), proposta.getId().toString())));
 
-    logger.info(analisesPendentes.size() + " propostas com análise pendente.");
+    logger.info(analisesPendentes.size() + " proposta(s) com análise pendente.");
 
     /* Para executar somente se houver propostas com cartão pendente */
     if (analisesPendentes.size() > 0) {
+
       List<AnalisePropostaResponse> respostasAnalises = new ArrayList<>();
 
       try {
         /* criando uma lista de respostas das analises pendentes, fazendo a consulta ao sistema externo
          * e adicionando na lista de respostas */
+        analisesPendentes.stream()
+                         .parallel()
+                         .forEach(analise -> respostasAnalises.add(analisePropostaClient.analisaProposta(analise)));
 
-        analisesPendentes.forEach(analise ->
-                respostasAnalises.add(analisePropostaClient.analisaProposta(analise)));
-        logger.info(analisesPendentes.size() + " propostas enviadas para análise com sucesso!");
+        logger.info(analisesPendentes.size() + " proposta(s) enviadas para análise com sucesso!");
 
         // atualizando as propostas com as análises recebidas
         listaPropostas.forEach(proposta -> {
-          respostasAnalises.forEach(proposta::verificaAnaliseEAtualizaStatus);
+          respostasAnalises.stream()
+                           .parallel()
+                           .forEach(proposta::verificaAnaliseEAtualizaStatus);
+
           logger.info("Proposta ID " + proposta.getId() + " atualizada com sucesso! Status: " + proposta.getStatus());
         });
 
@@ -86,16 +91,17 @@ public class RealizarAnaliseProposta {
                 = new ObjectMapper().readValue(analiseResponseString, AnalisePropostaResponse.class);
 
         // Pega a análise não elegível e atualiza status
-        listaPropostas.forEach(proposta -> {
-          proposta.verificaAnaliseEAtualizaStatus(analiseResponse);
+        listaPropostas.stream().parallel().forEach(proposta -> {
+                  proposta.verificaAnaliseEAtualizaStatus(analiseResponse);
           logger.info("Proposta ID " + proposta.getId() + " atualizada com sucesso! Status: " + proposta.getStatus());
         });
 
         // atualizando demais propostas
-        listaPropostas.forEach(proposta -> {
-          // para atualizar as propostas que não sejam a que deu erro
+        listaPropostas.stream().parallel().forEach(proposta -> {
+          // para atualizar as propostas que não sejam as que deu erro
           if (!proposta.getId().equals(analiseResponse.getIdProposta()))
-            respostasAnalises.forEach(proposta::verificaAnaliseEAtualizaStatus);
+            respostasAnalises.stream().parallel()
+                    .forEach(proposta::verificaAnaliseEAtualizaStatus);
           logger.info("Proposta ID " + proposta.getId() + " atualizada com sucesso! Status: " + proposta.getStatus());
         });
 

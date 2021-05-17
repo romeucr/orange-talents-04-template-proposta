@@ -1,15 +1,19 @@
 package br.com.zupacademy.romeu.proposta.compartilhado.excecoes;
 
-public class EntidadeDuplicadaException extends RuntimeException {
-
+public class ErroPadrao {
   private String campo;
+  private String erro;
 
-  public EntidadeDuplicadaException(String campo, String msg) {
-    super(msg);
+  public ErroPadrao(String campo, String erro) {
     this.campo = campo;
+    this.erro = erro;
   }
 
   public String getCampo() {
     return campo;
+  }
+
+  public String getErro() {
+    return erro;
   }
 }
