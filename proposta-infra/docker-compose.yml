@@ -134,6 +134,34 @@ services:
       VAULT_TOKEN: ee413645-dbe8-4848-afc6-6bb2768ada75
       VAULT_ADDR: http://127.0.0.1:8200
 
+#  propostas:
+#    depends_on:
+#      - mysql
+#    restart: always
+#    image: romeu/propostas
+#    ports:
+#      - 0712:8080
+#    container_name: propostas
+#    environment:
+#      SERVER_PORT: 8080
+#      LOG_LEVEL: INFO
+#      DATASOURCE_URL: jdbc:mysql://mysql:3306/propostas
+#      DATASOURCE_USER: root
+#      DATASOURCE_PASSWORD: 12345678
+#      ANALISA_PROPOSTA_URL: http://analise:9999
+#      VERIFICA_CARTAO_URL: http://contas:8888
+#      PERIODICIDADE_ASSIGNAR_CARTAO_PROPOSTA: 120000
+#      PERIODICIDADE_REALIZAR_ANALISE_PROPOSTA: 120000
+#
+#  mysql:
+#    image: 'mysql:8.0'
+#    ports:
+#      - 3307:3306
+#    container_name: mysql_propostas
+#    environment:
+#      MYSQL_DATABASE: propostas
+#      MYSQL_ROOT_PASSWORD: 12345678
+
 volumes:
   grafana-volume:
   prometheus-volume:
