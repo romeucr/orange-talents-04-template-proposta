@@ -3,8 +3,6 @@ package br.com.zupacademy.romeu.proposta.biometria;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.ValidFingerprint;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.ValorUnico;
 
-import javax.validation.constraints.NotBlank;
-
 public class BiometriaRequest {
 
   @ValidFingerprint

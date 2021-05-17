@@ -92,7 +92,7 @@ public class PropostaController {
       if (proposta.getStatus().equals(PropostaStatus.NAO_ELEGIVEL))
         return ResponseEntity.ok().body(new ConsultaPropostaNaoElegivelResponse(proposta));
 
-      return ResponseEntity.ok().body(new ConsultaPropostaResponse(proposta));
+        return ResponseEntity.ok().body(new ConsultaPropostaResponse(proposta));
     }
 
     return ResponseEntity.notFound().build();

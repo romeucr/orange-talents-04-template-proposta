@@ -28,7 +28,15 @@ public class ConsultaPropostaResponse {
     this.endereco = proposta.getEndereco();
     this.salario = proposta.getSalario();
     this.status = proposta.getStatus();
-    this.cartao = new CartaoConsultaPropostaResponse(proposta.getCartao());
+
+    /* A proposta pode estar elegível porém o cartão ainda não foi associado.
+     * Nesse caso, mostrar cartão como nulo */
+    if(proposta.getCartao() == null) {
+      this.cartao = null;
+    } else {
+      this.cartao = new CartaoConsultaPropostaResponse(proposta.getCartao());
+    }
+
   }
 
   public Long getId() {

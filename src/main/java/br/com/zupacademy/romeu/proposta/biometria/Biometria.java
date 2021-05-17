@@ -2,10 +2,7 @@ package br.com.zupacademy.romeu.proposta.biometria;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -17,10 +14,11 @@ public class Biometria {
   private Long id;
 
   @NotNull
+  @Lob
   private String fingerprint;
 
   @CreationTimestamp
-  private LocalDateTime creadoEm;
+  private LocalDateTime criadoEm;
 
   /* @deprecated
    * para uso exclusivo do hibernate
@@ -33,5 +31,9 @@ public class Biometria {
 
   public Long getId() {
     return id;
+  }
+
+  public String getFingerprint() {
+    return fingerprint;
   }
 }
