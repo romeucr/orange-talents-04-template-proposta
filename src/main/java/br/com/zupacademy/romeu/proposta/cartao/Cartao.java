@@ -1,18 +1,21 @@
 package br.com.zupacademy.romeu.proposta.cartao;
 
-import br.com.zupacademy.romeu.proposta.biometria.Biometria;
+import br.com.zupacademy.romeu.proposta.cartao.biometria.Biometria;
+import br.com.zupacademy.romeu.proposta.cartao.bloqueio.Bloqueio;
 import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeDuplicadaException;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
 public class Cartao {
 
-  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @NotNull
@@ -31,9 +34,13 @@ public class Cartao {
   @OneToMany
   private Set<Biometria> biometria;
 
+  @OneToMany(cascade = CascadeType.ALL)
+  private List<Bloqueio> bloqueios;
+
   /* @deprecated para uso do hibernate
    * */
-  public Cartao(){}
+  public Cartao() {
+  }
 
   public Cartao(String numero, LocalDateTime emitidoEm, Integer limite, Proposta proposta) {
     this.numero = numero;
@@ -66,10 +73,35 @@ public class Cartao {
     return biometria;
   }
 
+  public List<Bloqueio> getBloqueios() {
+    return bloqueios;
+  }
+
+  public void adicionaBloqueio(Bloqueio bloqueio) {
+    this.bloqueios.add(bloqueio);
+  }
+
   public void adicionaBiometria(Biometria biometria) {
     if (this.biometria.contains(biometria)) {
       throw new EntidadeDuplicadaException("Biometria:", "A biometria informada já está cadastrada no cartão informado");
     }
     this.biometria.add(biometria);
+  }
+
+  public boolean possuiBloqueioAtivo() {
+    if (bloqueios.isEmpty())
+      return false;
+
+    int totalBloqueios = bloqueios.size();
+    Bloqueio ultimoBloqueio = bloqueios.get(totalBloqueios - 1);
+
+    return ultimoBloqueio.isAtivo();
+  }
+
+  public boolean solicitanteEDonoDoCartao(String emailUsuarioAutenticado) {
+    if (!this.proposta.getEmail().equals(emailUsuarioAutenticado))
+      return false;
+
+    return true;
   }
 }

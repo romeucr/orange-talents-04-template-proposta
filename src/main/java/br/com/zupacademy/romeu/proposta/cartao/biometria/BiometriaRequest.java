@@ -1,4 +1,4 @@
-package br.com.zupacademy.romeu.proposta.biometria;
+package br.com.zupacademy.romeu.proposta.cartao.biometria;
 
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.ValidFingerprint;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.ValorUnico;

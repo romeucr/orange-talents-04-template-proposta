@@ -29,7 +29,7 @@ public class ConsultaPropostaResponse {
     this.salario = proposta.getSalario();
     this.status = proposta.getStatus();
 
-    /* A proposta pode estar elegível porém o cartão ainda não foi associado.
+    /* A proposta pode estar ELEGIVEL porém o cartão ainda não foi associado.
      * Nesse caso, mostrar cartão como nulo */
     if(proposta.getCartao() == null) {
       this.cartao = null;

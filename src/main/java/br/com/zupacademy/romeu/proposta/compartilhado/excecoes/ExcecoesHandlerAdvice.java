@@ -20,7 +20,7 @@ public class ExcecoesHandlerAdvice {
   MessageSource messageSource;
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<?> handle(MethodArgumentNotValidException exception) {
+  protected ResponseEntity<?> handle(MethodArgumentNotValidException exception) {
     List<ErroPadrao> listaDeErros = new ArrayList<>();
     List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
 
@@ -34,21 +34,27 @@ public class ExcecoesHandlerAdvice {
   }
 
   @ExceptionHandler(EntidadeDuplicadaException.class)
-  public ResponseEntity<?> handle(EntidadeDuplicadaException exception) {
+  protected ResponseEntity<?> handle(EntidadeDuplicadaException exception) {
     ErroPadrao erro = new ErroPadrao(exception.getCampo(), exception.getMessage());
     return ResponseEntity.unprocessableEntity().body(erro);
   }
 
   @ExceptionHandler(AnalisePropostaException.class)
-  public ResponseEntity<?> handle(AnalisePropostaException exception) {
+  protected ResponseEntity<?> handle(AnalisePropostaException exception) {
     /* não é para retornar nenhum erro, apenas o código 422 UNPROCESSABLE ENTITY */
     return ResponseEntity.unprocessableEntity().build();
   }
 
   @ExceptionHandler(EntidadeNaoEncontradaException.class)
-  public ResponseEntity<?> handle(EntidadeNaoEncontradaException exception) {
+  protected ResponseEntity<?> handle(EntidadeNaoEncontradaException exception) {
     ErroPadrao erro = new ErroPadrao(exception.getCampo(), exception.getMessage());
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
   }
 
+  @ExceptionHandler(ApiException.class)
+  protected ResponseEntity<?> handle(ApiException exception) {
+    ErroPadrao erro = new ErroPadrao(exception.getCampo(), exception.getMessage());
+    HttpStatus httpStatus = exception.getHttpStatus();
+    return ResponseEntity.status(httpStatus).body(erro);
+  }
 }

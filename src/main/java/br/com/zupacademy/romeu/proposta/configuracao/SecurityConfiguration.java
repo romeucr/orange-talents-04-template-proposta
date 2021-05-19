@@ -1,4 +1,4 @@
-package br.com.zupacademy.romeu.proposta.configuration;
+package br.com.zupacademy.romeu.proposta.configuracao;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

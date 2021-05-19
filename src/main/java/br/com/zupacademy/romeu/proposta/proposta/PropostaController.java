@@ -1,5 +1,6 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeNaoEncontradaException;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaClient;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaRequest;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaResponse;
@@ -30,6 +31,11 @@ public class PropostaController {
 
   private final Logger logger = LoggerFactory.getLogger(PropostaController.class);
 
+
+  /* ==============================
+   * CRIAR NOVA PROPOSTA
+   * ==============================
+   **/
   @PostMapping("/propostas")
   @Transactional
   public ResponseEntity<?> novaProposta(@RequestBody @Valid NovaPropostaRequest novaPropostaRequest,
@@ -72,6 +78,7 @@ public class PropostaController {
       return ResponseEntity.unprocessableEntity().build();
     } catch (FeignException ex) {
       // se o sistema de análise estiver offline, não faz nada.
+      // a proposta é salva e será analisada na próxima vez que rodar o job RealizarAnaliseProposta
     }
 
     URI uri = uriBuilder.path("/propostas/{id}")
@@ -81,20 +88,23 @@ public class PropostaController {
     return ResponseEntity.created(uri).build();
   }
 
+  /* ==============================
+   * CONSULTAR PROPOSTA POR ID
+   * ==============================
+   **/
   @GetMapping("/propostas/{id}")
   public ResponseEntity<?> consultaProposta(@PathVariable(name = "id") Long id) {
     Optional<Proposta> optProposta = propostaRepository.findById(id);
 
-    if (optProposta.isPresent()) {
-      Proposta proposta = optProposta.get();
+    if (optProposta.isEmpty())
+      throw new EntidadeNaoEncontradaException("id", "Não existe proposta com o id informado.");
 
-      /* Se a proposta é não elegível, não tem cartão */
-      if (proposta.getStatus().equals(PropostaStatus.NAO_ELEGIVEL))
-        return ResponseEntity.ok().body(new ConsultaPropostaNaoElegivelResponse(proposta));
+    Proposta proposta = optProposta.get();
 
-        return ResponseEntity.ok().body(new ConsultaPropostaResponse(proposta));
-    }
+    /* Se a proposta é não elegível, não tem cartão */
+    if (proposta.getStatus().equals(PropostaStatus.NAO_ELEGIVEL))
+      return ResponseEntity.ok().body(new ConsultaPropostaNaoElegivelResponse(proposta));
 
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.ok().body(new ConsultaPropostaResponse(proposta));
   }
 }
