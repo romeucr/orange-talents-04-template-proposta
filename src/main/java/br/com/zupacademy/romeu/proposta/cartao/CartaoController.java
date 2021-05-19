@@ -23,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -84,6 +85,7 @@ public class CartaoController {
    * BLOQUEAR CARTÃO
    * ==============================
    **/
+  @Transactional
   @PostMapping("/cartoes/{id}/bloqueio")
   public ResponseEntity<?> bloqueiaCartao(@NotBlank @PathVariable("id") String numeroDoCartao,
                                           @RequestHeader(value = "User-Agent") String userAgent) throws JsonProcessingException {
@@ -132,7 +134,7 @@ public class CartaoController {
       cartao.adicionaBloqueio(bloqueio);
       cartaoRepository.save(cartao);
 
-      logger.info("Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) + "bloqueado com sucesso!");
+      logger.info("Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) + " bloqueado com sucesso!");
       logger.info("Dados do bloqueio: " + bloqueio.toString());
 
       return ResponseEntity.ok().build();

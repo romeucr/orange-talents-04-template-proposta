@@ -2,6 +2,7 @@ package br.com.zupacademy.romeu.proposta.cartao;
 
 import br.com.zupacademy.romeu.proposta.cartao.biometria.Biometria;
 import br.com.zupacademy.romeu.proposta.cartao.bloqueio.Bloqueio;
+import br.com.zupacademy.romeu.proposta.cartao.enums.EstadoCartao;
 import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeDuplicadaException;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
 
@@ -36,6 +37,10 @@ public class Cartao {
 
   @OneToMany(cascade = CascadeType.ALL)
   private List<Bloqueio> bloqueios;
+
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  private EstadoCartao estado = EstadoCartao.ATIVADO;
 
   /* @deprecated para uso do hibernate
    * */
@@ -78,6 +83,7 @@ public class Cartao {
   }
 
   public void adicionaBloqueio(Bloqueio bloqueio) {
+    this.estado = EstadoCartao.BLOQUEADO;
     this.bloqueios.add(bloqueio);
   }
 
@@ -99,9 +105,6 @@ public class Cartao {
   }
 
   public boolean solicitanteEDonoDoCartao(String emailUsuarioAutenticado) {
-    if (!this.proposta.getEmail().equals(emailUsuarioAutenticado))
-      return false;
-
-    return true;
+    return this.proposta.getEmail().equals(emailUsuarioAutenticado);
   }
 }
