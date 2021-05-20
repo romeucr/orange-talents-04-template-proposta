@@ -9,5 +9,5 @@ public interface BloqueiaCartaoClient {
 
   @PostMapping("/api/cartoes/{id}/bloqueios")
   BloqueioResponse bloqueiaCartao(@PathVariable("id") String numeroCartao,
-                                @RequestBody BloqueioRequest bloqueioRequest);
+                                  @RequestBody BloqueioRequest bloqueioRequest);
 }

@@ -4,9 +4,7 @@ import br.com.zupacademy.romeu.proposta.cartao.biometria.Biometria;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.BiometriaRepository;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.BiometriaRequest;
 import br.com.zupacademy.romeu.proposta.cartao.bloqueio.*;
-import br.com.zupacademy.romeu.proposta.cartao.viagem.Viagem;
-import br.com.zupacademy.romeu.proposta.cartao.viagem.ViagemRepository;
-import br.com.zupacademy.romeu.proposta.cartao.viagem.ViagemRequest;
+import br.com.zupacademy.romeu.proposta.cartao.viagem.*;
 import br.com.zupacademy.romeu.proposta.compartilhado.Ofuscadores;
 import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,12 +49,15 @@ public class CartaoController {
   @Autowired
   private ViagemRepository viagemRepository;
 
+  @Autowired
+  private ViagemClient viagemClient;
+
   private final Logger logger = LoggerFactory.getLogger(CartaoController.class);
 
   /* ==============================
    * INSERIR BIOMETRIA NO CARTÃO
    * ==============================
-   **/
+   * */
   @Transactional
   @PostMapping("/cartoes/{cartaoId}/biometrias")
   public ResponseEntity<?> adicionaBiometria(@NotNull @PathVariable("cartaoId") Long cartaoId,
@@ -90,7 +91,7 @@ public class CartaoController {
   /* ==============================
    * BLOQUEAR CARTÃO
    * ==============================
-   **/
+   * */
   @Transactional
   @PostMapping("/cartoes/{id}/bloqueios")
   public ResponseEntity<?> bloqueiaCartao(@PathVariable("id") String numeroDoCartao,
@@ -140,7 +141,7 @@ public class CartaoController {
       logger.info("Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) + " bloqueado com sucesso!");
       logger.info("Dados do bloqueio: " + bloqueio.toString());
 
-      return ResponseEntity.ok().build();
+      return ResponseEntity.ok().body(bloqueioResponse);
 
     } catch (FeignException.UnprocessableEntity ex) {
       String bloqueioResponseString = ex.contentUTF8();
@@ -155,12 +156,12 @@ public class CartaoController {
   /* ==============================
    * CRIAR AVISO DE VIAGEM
    * ==============================
-   **/
+   * */
   @Transactional
   @PostMapping("/cartoes/{id}/viagens")
-  public ResponseEntity<?> adicionaViagem(@PathVariable("id") String numeroDoCartao,
-                                          @Valid @RequestBody ViagemRequest viagemRequest,
-                                          HttpServletRequest servletRequest, UriComponentsBuilder uriBuilder) {
+  public ResponseEntity<?> novoAvisoViagem(@PathVariable("id") String numeroDoCartao,
+                                          @Valid @RequestBody NovaViagemRequest novaViagemRequest,
+                                          HttpServletRequest servletRequest, UriComponentsBuilder uriBuilder) throws JsonProcessingException {
     if (numeroDoCartao.isBlank())
       throw new ApiException("id", "O id do cartão deve ser informado", BAD_REQUEST);
 
@@ -168,27 +169,50 @@ public class CartaoController {
     Cartao cartao = optCartao.orElseThrow(() ->
             new ApiException("cartaoId", "O cartão informado não foi encontrado na base de dados", NOT_FOUND));
 
-    viagemRequest.setNumeroDoCartao(cartao.getNumero());
+    if (cartao.possuiBloqueioAtivo()) {
+      logger.info("Falha ao criar aviso de viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero() +
+              ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()) +
+              ". Cartão Bloqueado.");
+      throw new ApiException("", "Cartão Bloqueado. Não é possível incluir aviso de mensagem", BAD_REQUEST);
+    }
 
-    String enderecoIp = servletRequest.getRemoteAddr();
-    String userAgent = servletRequest.getHeader("User-Agent");
+    ViagemResponse viagemResponse = null;
+    try {
+      viagemResponse = viagemClient.novoAvisoViagem(cartao.getNumero(), novaViagemRequest);
 
-    Viagem viagem = viagemRequest.toModel(enderecoIp, userAgent);
-    viagemRepository.save(viagem);
+      novaViagemRequest.setNumeroDoCartao(cartao.getNumero());
 
-    cartao.adicionaViagem(viagem);
+      String enderecoIp = servletRequest.getRemoteAddr();
+      String userAgent = servletRequest.getHeader("User-Agent");
 
-    logger.info("Viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) +
-            " armazenada com sucesso.");
+      Viagem viagem = novaViagemRequest.toModel(enderecoIp, userAgent);
+      viagemRepository.save(viagem);
 
-    Map<String, String> mapIds = new HashMap<>();
-    mapIds.put("cartaoId", cartao.getNumero());
-    mapIds.put("viagemId", viagem.getId().toString());
+      cartao.adicionaViagem(viagem);
+      logger.info("Aviso de viagem criado com sucesso. Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) +
+              ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte());
 
-    URI uri = uriBuilder.path("/cartoes/{cartaoId}/viagens/{viagemId}")
-            .buildAndExpand(mapIds)
-            .toUri();
+      Map<String, String> mapIds = new HashMap<>();
+      mapIds.put("cartaoId", cartao.getNumero());
+      mapIds.put("viagemId", viagem.getId().toString());
 
-    return ResponseEntity.created(uri).build();
+      URI uri = uriBuilder.path("/cartoes/{cartaoId}/viagens/{viagemId}")
+              .buildAndExpand(mapIds)
+              .toUri();
+
+      return ResponseEntity.created(uri).body(viagemResponse);
+
+    } catch (FeignException.UnprocessableEntity ex) {
+      String viagemResponseString = ex.contentUTF8();
+      viagemResponse = new ObjectMapper().readValue(viagemResponseString, ViagemResponse.class);
+      logger.info("Falha ao criar aviso de viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero() +
+              ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()));
+      return ResponseEntity.unprocessableEntity().body(viagemResponse);
+    } catch (FeignException ex) {
+      logger.info("Falha ao criar aviso de viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero() +
+              ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()));
+      throw new ApiException("", "Sistema de aviso de viagem temporariamente indisponível.", SERVICE_UNAVAILABLE);
+    }
+
   }
 }

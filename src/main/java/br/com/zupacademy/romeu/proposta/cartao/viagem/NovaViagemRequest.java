@@ -1,27 +1,28 @@
 package br.com.zupacademy.romeu.proposta.cartao.viagem;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.Future;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-public class ViagemRequest {
+public class NovaViagemRequest {
 
   private String numeroDoCartao;
 
   @NotBlank
   private String destino;
 
-  @NotNull @Future @JsonFormat(pattern = "dd/MM/yyyy", shape = JsonFormat.Shape.STRING)
-  private LocalDate dataFimViagem;
+  @NotNull @Future @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
+  private LocalDate validoAte;
 
-  public ViagemRequest() {}
+  public NovaViagemRequest() {}
 
-  public ViagemRequest(@NotBlank String destino, @NotNull @Future LocalDate dataFimViagem) {
+  public NovaViagemRequest(@NotBlank String destino, @NotNull @Future LocalDate validoAte) {
     this.destino = destino;
-    this.dataFimViagem = dataFimViagem;
+    this.validoAte = validoAte;
   }
 
   public String getNumeroDoCartao() {
@@ -32,8 +33,8 @@ public class ViagemRequest {
     return destino;
   }
 
-  public LocalDate getDataFimViagem() {
-    return dataFimViagem;
+  public LocalDate getValidoAte() {
+    return validoAte;
   }
 
   public void setNumeroDoCartao(String numeroDoCartao) {
@@ -41,6 +42,7 @@ public class ViagemRequest {
   }
 
   public Viagem toModel(String enderecoIp, String userAgent) {
-    return new Viagem(numeroDoCartao, destino, dataFimViagem.atStartOfDay(), enderecoIp, userAgent);
+    // .atStartOfDay() para converter em LocalDateTime
+    return new Viagem(numeroDoCartao, destino, validoAte.atStartOfDay(), enderecoIp, userAgent);
   }
 }

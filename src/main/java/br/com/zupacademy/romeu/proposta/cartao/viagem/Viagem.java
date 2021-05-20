@@ -41,7 +41,7 @@ public class Viagem {
   public Viagem() {}
 
   public Viagem(@NotBlank String numeroDoCartao, @NotBlank String destino,
-                @NotBlank LocalDateTime dataFimViagem, @NotBlank String enderecoIp,
+                LocalDateTime dataFimViagem, @NotBlank String enderecoIp,
                 @NotBlank String userAgentRequisicao) {
     this.numeroDoCartao = numeroDoCartao;
     this.destino = destino;
