@@ -3,8 +3,10 @@ package br.com.zupacademy.romeu.proposta.cartao;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.Biometria;
 import br.com.zupacademy.romeu.proposta.cartao.bloqueio.Bloqueio;
 import br.com.zupacademy.romeu.proposta.cartao.enums.EstadoCartao;
-import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeDuplicadaException;
+import br.com.zupacademy.romeu.proposta.cartao.viagem.Viagem;
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ApiException;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -37,6 +39,9 @@ public class Cartao {
 
   @OneToMany(cascade = CascadeType.ALL)
   private List<Bloqueio> bloqueios;
+
+  @OneToMany(cascade = CascadeType.ALL)
+  private List<Viagem> viagens;
 
   @NotNull
   @Enumerated(EnumType.STRING)
@@ -82,6 +87,10 @@ public class Cartao {
     return bloqueios;
   }
 
+  public List<Viagem> getViagens() {
+    return viagens;
+  }
+
   public void adicionaBloqueio(Bloqueio bloqueio) {
     this.estado = EstadoCartao.BLOQUEADO;
     this.bloqueios.add(bloqueio);
@@ -89,7 +98,9 @@ public class Cartao {
 
   public void adicionaBiometria(Biometria biometria) {
     if (this.biometria.contains(biometria)) {
-      throw new EntidadeDuplicadaException("Biometria:", "A biometria informada já está cadastrada no cartão informado");
+      throw new ApiException("Biometria:",
+                             "A biometria informada já está cadastrada no cartão informado",
+                              HttpStatus.UNPROCESSABLE_ENTITY);
     }
     this.biometria.add(biometria);
   }
@@ -107,4 +118,9 @@ public class Cartao {
   public boolean solicitanteEDonoDoCartao(String emailUsuarioAutenticado) {
     return this.proposta.getEmail().equals(emailUsuarioAutenticado);
   }
+
+  public void adicionaViagem(Viagem viagem) {
+    this.viagens.add(viagem);
+  }
+
 }

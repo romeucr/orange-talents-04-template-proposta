@@ -1,6 +1,6 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
-import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeNaoEncontradaException;
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ApiException;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaClient;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaRequest;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaResponse;
@@ -11,6 +11,7 @@ import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -96,10 +97,8 @@ public class PropostaController {
   public ResponseEntity<?> consultaProposta(@PathVariable(name = "id") Long id) {
     Optional<Proposta> optProposta = propostaRepository.findById(id);
 
-    if (optProposta.isEmpty())
-      throw new EntidadeNaoEncontradaException("id", "Não existe proposta com o id informado.");
-
-    Proposta proposta = optProposta.get();
+    Proposta proposta = optProposta.orElseThrow(() ->
+     new ApiException("id", "Não existe proposta com o id informado.", HttpStatus.NOT_FOUND));
 
     /* Se a proposta é não elegível, não tem cartão */
     if (proposta.getStatus().equals(PropostaStatus.NAO_ELEGIVEL))

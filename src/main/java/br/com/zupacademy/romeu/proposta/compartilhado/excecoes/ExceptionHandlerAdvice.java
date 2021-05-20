@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
-public class ExcecoesHandlerAdvice {
+public class ExceptionHandlerAdvice {
 
   @Autowired
   MessageSource messageSource;
@@ -31,24 +31,6 @@ public class ExcecoesHandlerAdvice {
     });
 
     return ResponseEntity.badRequest().body(listaDeErros);
-  }
-
-  @ExceptionHandler(EntidadeDuplicadaException.class)
-  protected ResponseEntity<?> handle(EntidadeDuplicadaException exception) {
-    ErroPadrao erro = new ErroPadrao(exception.getCampo(), exception.getMessage());
-    return ResponseEntity.unprocessableEntity().body(erro);
-  }
-
-  @ExceptionHandler(AnalisePropostaException.class)
-  protected ResponseEntity<?> handle(AnalisePropostaException exception) {
-    /* não é para retornar nenhum erro, apenas o código 422 UNPROCESSABLE ENTITY */
-    return ResponseEntity.unprocessableEntity().build();
-  }
-
-  @ExceptionHandler(EntidadeNaoEncontradaException.class)
-  protected ResponseEntity<?> handle(EntidadeNaoEncontradaException exception) {
-    ErroPadrao erro = new ErroPadrao(exception.getCampo(), exception.getMessage());
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
   }
 
   @ExceptionHandler(ApiException.class)

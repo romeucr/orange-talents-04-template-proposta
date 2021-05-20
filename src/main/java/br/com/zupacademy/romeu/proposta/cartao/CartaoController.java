@@ -4,31 +4,34 @@ import br.com.zupacademy.romeu.proposta.cartao.biometria.Biometria;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.BiometriaRepository;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.BiometriaRequest;
 import br.com.zupacademy.romeu.proposta.cartao.bloqueio.*;
+import br.com.zupacademy.romeu.proposta.cartao.viagem.Viagem;
+import br.com.zupacademy.romeu.proposta.cartao.viagem.ViagemRepository;
+import br.com.zupacademy.romeu.proposta.cartao.viagem.ViagemRequest;
 import br.com.zupacademy.romeu.proposta.compartilhado.Ofuscadores;
-import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeNaoEncontradaException;
 import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ApiException;
-import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ErroPadrao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 public class CartaoController {
@@ -45,14 +48,17 @@ public class CartaoController {
   @Autowired
   private BloqueiaCartaoClient bloqueiaCartaoClient;
 
-  private final Logger logger = LoggerFactory.getLogger(CartaoController.class);
+  @Autowired
+  private ViagemRepository viagemRepository;
 
+  private final Logger logger = LoggerFactory.getLogger(CartaoController.class);
 
   /* ==============================
    * INSERIR BIOMETRIA NO CARTÃO
    * ==============================
    **/
-  @PostMapping("/cartoes/{cartaoId}/biometria")
+  @Transactional
+  @PostMapping("/cartoes/{cartaoId}/biometrias")
   public ResponseEntity<?> adicionaBiometria(@NotNull @PathVariable("cartaoId") Long cartaoId,
                                              @Valid @RequestBody BiometriaRequest biometriaRequest,
                                              UriComponentsBuilder uriBuilder) {
@@ -66,7 +72,7 @@ public class CartaoController {
     if (optCartao.isEmpty()) {
       biometriaRepository.delete(biometria);
       logger.info("Biometria ID " + biometria.getId() + " removida com sucesso no banco de dados! ROLLBACK");
-      throw new EntidadeNaoEncontradaException("cartaoId", "O cartão informado não foi encontrado na base de dados");
+      throw new ApiException("cartaoId", "O cartão informado não foi encontrado na base de dados", NOT_FOUND);
     }
 
     Cartao cartao = optCartao.get();
@@ -86,22 +92,19 @@ public class CartaoController {
    * ==============================
    **/
   @Transactional
-  @PostMapping("/cartoes/{id}/bloqueio")
-  public ResponseEntity<?> bloqueiaCartao(@NotBlank @PathVariable("id") String numeroDoCartao,
-                                          @RequestHeader(value = "User-Agent") String userAgent) throws JsonProcessingException {
+  @PostMapping("/cartoes/{id}/bloqueios")
+  public ResponseEntity<?> bloqueiaCartao(@PathVariable("id") String numeroDoCartao,
+                                          @RequestHeader(value = "User-Agent") String userAgent,
+                                          UriComponentsBuilder uriBuilder) throws JsonProcessingException {
     if (numeroDoCartao.isBlank())
-      throw new ApiException("id", "O id do cartão deve ser informado", HttpStatus.BAD_REQUEST);
+      throw new ApiException("id", "O id do cartão deve ser informado", BAD_REQUEST);
 
     Optional<Cartao> optCartao = cartaoRepository.findByNumero(numeroDoCartao);
+    Cartao cartao = optCartao.orElseThrow(() ->
+            new ApiException("cartaoId", "O cartão informado não foi encontrado na base de dados", NOT_FOUND));
 
-    // se cartão não encontrado, lança exceção que retorna 404
-    if (optCartao.isEmpty())
-      throw new EntidadeNaoEncontradaException("cartaoId", "O cartão informado não foi encontrado na base de dados");
-
-    //verificar se o cartão não está bloqueado
-    Cartao cartao = optCartao.get();
     if (cartao.possuiBloqueioAtivo())
-      throw new ApiException("cartaoId", "O cartão informado já se encontra bloqueado", HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new ApiException("cartaoId", "O cartão informado já se encontra bloqueado", UNPROCESSABLE_ENTITY);
 
     // Verificando se o dono do cartão é o usuário logado.
     // Comparando email que está no token com o email que está na proposta do cartão
@@ -113,7 +116,7 @@ public class CartaoController {
               "Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) +
               ". Dono: " + cartao.getProposta().getEmail() +
               ". Solicitante: " + emailUsuarioAutenticado);
-      throw new ApiException("cartaoId", "O cartão informado não pertence ao usuário logado", HttpStatus.FORBIDDEN);
+      throw new ApiException("cartaoId", "O cartão informado não pertence ao usuário logado", FORBIDDEN);
     }
 
     // enviar a solicitação de bloqueio
@@ -123,7 +126,7 @@ public class CartaoController {
       bloqueioResponse = bloqueiaCartaoClient
               .bloqueiaCartao(cartao.getNumero(), new BloqueioRequest(userAgent));
 
-      // recuperando o IP do solicitanter
+      // recuperando o IP do solicitante
       WebAuthenticationDetails webDetails =
               (WebAuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
       String enderecoIp = webDetails.getRemoteAddress();
@@ -145,7 +148,47 @@ public class CartaoController {
 
       return ResponseEntity.unprocessableEntity().body(bloqueioResponse);
     } catch (FeignException ex) {
-      throw new ApiException("", "Sistema de bloqueio temporariamente indisponível.", HttpStatus.SERVICE_UNAVAILABLE);
+      throw new ApiException("", "Sistema de bloqueio temporariamente indisponível.", SERVICE_UNAVAILABLE);
     }
+  }
+
+  /* ==============================
+   * CRIAR AVISO DE VIAGEM
+   * ==============================
+   **/
+  @Transactional
+  @PostMapping("/cartoes/{id}/viagens")
+  public ResponseEntity<?> adicionaViagem(@PathVariable("id") String numeroDoCartao,
+                                          @Valid @RequestBody ViagemRequest viagemRequest,
+                                          HttpServletRequest servletRequest, UriComponentsBuilder uriBuilder) {
+    if (numeroDoCartao.isBlank())
+      throw new ApiException("id", "O id do cartão deve ser informado", BAD_REQUEST);
+
+    Optional<Cartao> optCartao = cartaoRepository.findByNumero(numeroDoCartao);
+    Cartao cartao = optCartao.orElseThrow(() ->
+            new ApiException("cartaoId", "O cartão informado não foi encontrado na base de dados", NOT_FOUND));
+
+    viagemRequest.setNumeroDoCartao(cartao.getNumero());
+
+    String enderecoIp = servletRequest.getRemoteAddr();
+    String userAgent = servletRequest.getHeader("User-Agent");
+
+    Viagem viagem = viagemRequest.toModel(enderecoIp, userAgent);
+    viagemRepository.save(viagem);
+
+    cartao.adicionaViagem(viagem);
+
+    logger.info("Viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) +
+            " armazenada com sucesso.");
+
+    Map<String, String> mapIds = new HashMap<>();
+    mapIds.put("cartaoId", cartao.getNumero());
+    mapIds.put("viagemId", viagem.getId().toString());
+
+    URI uri = uriBuilder.path("/cartoes/{cartaoId}/viagens/{viagemId}")
+            .buildAndExpand(mapIds)
+            .toUri();
+
+    return ResponseEntity.created(uri).build();
   }
 }

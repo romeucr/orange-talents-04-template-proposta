@@ -1,7 +1,8 @@
 package br.com.zupacademy.romeu.proposta.proposta;
 
+import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ApiException;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
-import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.EntidadeDuplicadaException;
+import org.springframework.http.HttpStatus;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -45,7 +46,9 @@ public class NovaPropostaRequest {
   public Proposta toModel(PropostaRepository propostaRepository) {
     Optional<Proposta> optProposta = propostaRepository.findByDocumento(this.documento);
     if (optProposta.isPresent())
-      throw new EntidadeDuplicadaException("documento", "Já existe proposta para este documento cadastrada na base de dados");
+      throw new ApiException("documento",
+                             "Já existe proposta para este documento cadastrada na base de dados",
+                             HttpStatus.UNPROCESSABLE_ENTITY);
 
     return new Proposta(documento, email, nome, endereco, salario);
   }
