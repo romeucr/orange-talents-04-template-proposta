@@ -1,4 +1,4 @@
-package br.com.zupacademy.romeu.proposta.proposta.analise;
+package br.com.zupacademy.romeu.proposta.proposta.analise.enums;
 
 import br.com.zupacademy.romeu.proposta.proposta.enums.PropostaStatus;
 

@@ -28,6 +28,9 @@ public class Bloqueio {
   @NotNull
   private boolean ativo;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public Bloqueio() {}
 
   public Bloqueio(@NotBlank String sistemaResponsavel, @NotBlank String enderecoIp, @NotNull boolean ativo) {

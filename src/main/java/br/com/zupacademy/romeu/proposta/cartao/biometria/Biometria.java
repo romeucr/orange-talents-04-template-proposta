@@ -23,6 +23,7 @@ public class Biometria {
   /* @deprecated
    * para uso exclusivo do hibernate
    * */
+  @Deprecated
   public Biometria() {}
 
   public Biometria(@NotNull String fingerprint) {

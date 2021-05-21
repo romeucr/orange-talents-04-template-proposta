@@ -8,6 +8,9 @@ public class CartaoConsultaPropostaResponse {
   private LocalDateTime emitidoEm;
   private Integer limite;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public CartaoConsultaPropostaResponse(){}
 
   public CartaoConsultaPropostaResponse(Cartao cartao) {

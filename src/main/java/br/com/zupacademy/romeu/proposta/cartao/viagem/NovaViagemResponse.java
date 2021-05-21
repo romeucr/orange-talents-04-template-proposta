@@ -2,7 +2,7 @@ package br.com.zupacademy.romeu.proposta.cartao.viagem;
 
 import br.com.zupacademy.romeu.proposta.cartao.viagem.enums.ResultadoViagem;
 
-public class ViagemResponse {
+public class NovaViagemResponse {
 
   private ResultadoViagem resultado;
 

@@ -9,6 +9,9 @@ public class BiometriaRequest {
   @ValorUnico(campo = "fingerprint", tabela = Biometria.class)
   private String fingerprint;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public BiometriaRequest() {}
 
   public BiometriaRequest(String fingerprint) {

@@ -10,8 +10,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
@@ -39,4 +44,24 @@ public class ExceptionHandlerAdvice {
     HttpStatus httpStatus = exception.getHttpStatus();
     return ResponseEntity.status(httpStatus).body(erro);
   }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  protected ResponseEntity<?> handle(ConstraintViolationException exception) {
+    List<ErroPadrao> erros = new ArrayList<>();
+    Set<ConstraintViolation<?>> constraintViolations = exception.getConstraintViolations();
+
+    constraintViolations.forEach(erro -> {
+      String campo = erro.getPropertyPath().toString();
+      for (int i = 0; i < campo.length(); i++) {
+        if (campo.charAt(i) == '.') {
+          campo = campo.substring(i + 1);
+          break;
+        }
+      }
+      erros.add(new ErroPadrao(campo, erro.getMessage()));
+    });
+
+    return ResponseEntity.badRequest().body(erros);
+  }
+
 }

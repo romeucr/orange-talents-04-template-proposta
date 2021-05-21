@@ -6,6 +6,9 @@ public class AnalisePropostaRequest {
   private String nome;
   private String idProposta;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public AnalisePropostaRequest(){}
 
   public AnalisePropostaRequest(String documento, String nome, String idProposta) {

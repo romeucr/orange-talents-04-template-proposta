@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ViagemClient {
 
   @PostMapping("/api/cartoes/{id}/avisos")
-  ViagemResponse novoAvisoViagem(@PathVariable("id") String numeroCartao,
-                              @RequestBody NovaViagemRequest novaViagemRequest);
+  NovaViagemResponse novoAvisoViagem(@PathVariable("id") String numeroCartao,
+                                     @RequestBody NovaViagemRequest novaViagemRequest);
 
 }

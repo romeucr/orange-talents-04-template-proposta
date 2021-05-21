@@ -18,6 +18,9 @@ public class NovaViagemRequest {
   @NotNull @Future @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
   private LocalDate validoAte;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public NovaViagemRequest() {}
 
   public NovaViagemRequest(@NotBlank String destino, @NotNull @Future LocalDate validoAte) {

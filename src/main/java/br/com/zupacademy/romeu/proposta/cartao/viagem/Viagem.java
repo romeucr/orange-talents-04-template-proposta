@@ -34,10 +34,9 @@ public class Viagem {
   @NotBlank
   private String userAgentRequisicao;
 
-  /**
-   * @deprecated
-   * apenas para uso do hibernate
-   */
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public Viagem() {}
 
   public Viagem(@NotBlank String numeroDoCartao, @NotBlank String destino,

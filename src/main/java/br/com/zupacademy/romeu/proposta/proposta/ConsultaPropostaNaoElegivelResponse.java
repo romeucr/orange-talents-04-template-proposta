@@ -14,6 +14,9 @@ public class ConsultaPropostaNaoElegivelResponse {
   private BigDecimal salario;
   private PropostaStatus status;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public ConsultaPropostaNaoElegivelResponse() {
   }
 

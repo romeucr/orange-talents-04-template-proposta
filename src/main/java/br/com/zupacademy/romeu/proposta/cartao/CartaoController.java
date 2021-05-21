@@ -4,8 +4,9 @@ import br.com.zupacademy.romeu.proposta.cartao.biometria.Biometria;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.BiometriaRepository;
 import br.com.zupacademy.romeu.proposta.cartao.biometria.BiometriaRequest;
 import br.com.zupacademy.romeu.proposta.cartao.bloqueio.*;
+import br.com.zupacademy.romeu.proposta.cartao.carteira.*;
 import br.com.zupacademy.romeu.proposta.cartao.viagem.*;
-import br.com.zupacademy.romeu.proposta.compartilhado.Ofuscadores;
+import br.com.zupacademy.romeu.proposta.compartilhado.ofuscadores.OfuscadorCartao;
 import br.com.zupacademy.romeu.proposta.compartilhado.excecoes.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,12 +18,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.HashMap;
@@ -31,36 +34,43 @@ import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.*;
 
+@Validated
 @RestController
 public class CartaoController {
-
-  @Autowired
-  private BiometriaRepository biometriaRepository;
 
   @Autowired
   private CartaoRepository cartaoRepository;
 
   @Autowired
+  private BiometriaRepository biometriaRepository;
+
+  @Autowired
   private BloqueioRepository bloqueioRepository;
 
   @Autowired
-  private BloqueiaCartaoClient bloqueiaCartaoClient;
+  private CarteiraRepository carteiraRepository;
 
   @Autowired
   private ViagemRepository viagemRepository;
 
   @Autowired
+  private BloqueiaCartaoClient bloqueiaCartaoClient;
+
+  @Autowired
   private ViagemClient viagemClient;
+
+  @Autowired
+  private AssociaCarteiraClient associaCarteiraClient;
+
 
   private final Logger logger = LoggerFactory.getLogger(CartaoController.class);
 
   /* ==============================
    * INSERIR BIOMETRIA NO CARTÃO
-   * ==============================
-   * */
+   * ============================== */
   @Transactional
   @PostMapping("/cartoes/{cartaoId}/biometrias")
-  public ResponseEntity<?> adicionaBiometria(@NotNull @PathVariable("cartaoId") Long cartaoId,
+  public ResponseEntity<?> adicionaBiometria(@PathVariable("cartaoId") @NotNull Long cartaoId,
                                              @Valid @RequestBody BiometriaRequest biometriaRequest,
                                              UriComponentsBuilder uriBuilder) {
 
@@ -90,15 +100,12 @@ public class CartaoController {
 
   /* ==============================
    * BLOQUEAR CARTÃO
-   * ==============================
-   * */
+   * ============================== */
   @Transactional
   @PostMapping("/cartoes/{id}/bloqueios")
-  public ResponseEntity<?> bloqueiaCartao(@PathVariable("id") String numeroDoCartao,
+  public ResponseEntity<?> bloqueiaCartao(@PathVariable("id") @NotBlank String numeroDoCartao,
                                           @RequestHeader(value = "User-Agent") String userAgent,
                                           UriComponentsBuilder uriBuilder) throws JsonProcessingException {
-    if (numeroDoCartao.isBlank())
-      throw new ApiException("id", "O id do cartão deve ser informado", BAD_REQUEST);
 
     Optional<Cartao> optCartao = cartaoRepository.findByNumero(numeroDoCartao);
     Cartao cartao = optCartao.orElseThrow(() ->
@@ -114,7 +121,7 @@ public class CartaoController {
 
     if (!cartao.solicitanteEDonoDoCartao(emailUsuarioAutenticado)) {
       logger.warn("Tentativa de bloqueio inválida. " +
-              "Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) +
+              "Cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero()) +
               ". Dono: " + cartao.getProposta().getEmail() +
               ". Solicitante: " + emailUsuarioAutenticado);
       throw new ApiException("cartaoId", "O cartão informado não pertence ao usuário logado", FORBIDDEN);
@@ -138,7 +145,7 @@ public class CartaoController {
       cartao.adicionaBloqueio(bloqueio);
       cartaoRepository.save(cartao);
 
-      logger.info("Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) + " bloqueado com sucesso!");
+      logger.info("Cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero()) + " bloqueado com sucesso!");
       logger.info("Dados do bloqueio: " + bloqueio.toString());
 
       return ResponseEntity.ok().body(bloqueioResponse);
@@ -149,36 +156,33 @@ public class CartaoController {
 
       return ResponseEntity.unprocessableEntity().body(bloqueioResponse);
     } catch (FeignException ex) {
-      throw new ApiException("", "Sistema de bloqueio temporariamente indisponível.", SERVICE_UNAVAILABLE);
+      throw new ApiException(null, "Sistema de bloqueio temporariamente indisponível.", SERVICE_UNAVAILABLE);
     }
   }
 
   /* ==============================
    * CRIAR AVISO DE VIAGEM
-   * ==============================
-   * */
+   * ============================== */
   @Transactional
   @PostMapping("/cartoes/{id}/viagens")
-  public ResponseEntity<?> novoAvisoViagem(@PathVariable("id") String numeroDoCartao,
-                                          @Valid @RequestBody NovaViagemRequest novaViagemRequest,
-                                          HttpServletRequest servletRequest, UriComponentsBuilder uriBuilder) throws JsonProcessingException {
-    if (numeroDoCartao.isBlank())
-      throw new ApiException("id", "O id do cartão deve ser informado", BAD_REQUEST);
+  public ResponseEntity<?> novoAvisoViagem(@PathVariable("id") @NotBlank String numeroDoCartao,
+                                           @Valid @RequestBody NovaViagemRequest novaViagemRequest,
+                                           HttpServletRequest servletRequest, UriComponentsBuilder uriBuilder) throws JsonProcessingException {
 
     Optional<Cartao> optCartao = cartaoRepository.findByNumero(numeroDoCartao);
     Cartao cartao = optCartao.orElseThrow(() ->
             new ApiException("cartaoId", "O cartão informado não foi encontrado na base de dados", NOT_FOUND));
 
     if (cartao.possuiBloqueioAtivo()) {
-      logger.info("Falha ao criar aviso de viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero() +
+      logger.info("Falha ao criar aviso de viagem para o cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero() +
               ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()) +
               ". Cartão Bloqueado.");
-      throw new ApiException("", "Cartão Bloqueado. Não é possível incluir aviso de mensagem", BAD_REQUEST);
+      throw new ApiException(null, "Cartão Bloqueado. Não é possível incluir aviso de mensagem", BAD_REQUEST);
     }
 
-    ViagemResponse viagemResponse = null;
+    NovaViagemResponse novaViagemResponse = null;
     try {
-      viagemResponse = viagemClient.novoAvisoViagem(cartao.getNumero(), novaViagemRequest);
+      novaViagemResponse = viagemClient.novoAvisoViagem(cartao.getNumero(), novaViagemRequest);
 
       novaViagemRequest.setNumeroDoCartao(cartao.getNumero());
 
@@ -189,30 +193,71 @@ public class CartaoController {
       viagemRepository.save(viagem);
 
       cartao.adicionaViagem(viagem);
-      logger.info("Aviso de viagem criado com sucesso. Cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero()) +
+      logger.info("Aviso de viagem criado com sucesso. Cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero()) +
               ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte());
 
-      Map<String, String> mapIds = new HashMap<>();
-      mapIds.put("cartaoId", cartao.getNumero());
-      mapIds.put("viagemId", viagem.getId().toString());
+      Map<String, String> cartaoViagemId = new HashMap<>();
+      cartaoViagemId.put("cartaoId", cartao.getNumero());
+      cartaoViagemId.put("viagemId", viagem.getId().toString());
 
       URI uri = uriBuilder.path("/cartoes/{cartaoId}/viagens/{viagemId}")
-              .buildAndExpand(mapIds)
+              .buildAndExpand(cartaoViagemId)
               .toUri();
 
-      return ResponseEntity.created(uri).body(viagemResponse);
+      return ResponseEntity.created(uri).body(novaViagemResponse);
 
     } catch (FeignException.UnprocessableEntity ex) {
       String viagemResponseString = ex.contentUTF8();
-      viagemResponse = new ObjectMapper().readValue(viagemResponseString, ViagemResponse.class);
-      logger.info("Falha ao criar aviso de viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero() +
+      novaViagemResponse = new ObjectMapper().readValue(viagemResponseString, NovaViagemResponse.class);
+      logger.info("Falha ao criar aviso de viagem para o cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero() +
               ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()));
-      return ResponseEntity.unprocessableEntity().body(viagemResponse);
-    } catch (FeignException ex) {
-      logger.info("Falha ao criar aviso de viagem para o cartão " + Ofuscadores.ofuscaIdDoCartao(cartao.getNumero() +
-              ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()));
-      throw new ApiException("", "Sistema de aviso de viagem temporariamente indisponível.", SERVICE_UNAVAILABLE);
-    }
 
+      return ResponseEntity.unprocessableEntity().body(novaViagemResponse);
+
+    } catch (FeignException ex) {
+      logger.info("Falha ao criar aviso de viagem para o cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero() +
+              ". Destino: " + novaViagemRequest.getDestino() + ". Válido até: " + novaViagemRequest.getValidoAte()));
+      throw new ApiException(null, "Sistema de aviso de viagem temporariamente indisponível.", SERVICE_UNAVAILABLE);
+    }
+  }
+
+  /* ==============================
+   * ASSOCIAR CARTEIRA COM CARTÃO
+   * ============================== */
+  @PostMapping("/cartoes/{id}/carteiras")
+  public ResponseEntity<?> novaCarteira(@PathVariable("id") @NotBlank String numeroDoCartao,
+                                        @Valid @RequestBody NovaCarteiraRequest novaCarteiraRequest,
+                                        HttpServletRequest servletRequest, UriComponentsBuilder uriBuilder) throws JsonProcessingException {
+
+    Optional<Cartao> optCartao = cartaoRepository.findByNumero(numeroDoCartao);
+    Cartao cartao = optCartao.orElseThrow(() ->
+            new ApiException("cartaoId", "O cartão informado não foi encontrado na base de dados", NOT_FOUND));
+
+    NovaCarteiraResponse novaCarteiraResponse = null;
+
+    try {
+      novaCarteiraResponse = associaCarteiraClient.associaCartaoCarteira(cartao.getNumero(), novaCarteiraRequest);
+      Carteira novaCarteira = novaCarteiraRequest.toModel(novaCarteiraResponse.getId());
+
+      /* Valida se há bloqueio, se a carteira já está associada.
+       * Grava cartao e carteira no banco e retorna a URI do novo recurso (carteira)
+       * */
+      URI uri = cartao.validaEAdicionaCarteira(cartaoRepository, carteiraRepository, novaCarteira, uriBuilder, logger);
+      return ResponseEntity.created(uri).body(novaCarteiraResponse);
+
+    } catch (FeignException.UnprocessableEntity ex) {
+      String novaCarteiraResponseString = ex.contentUTF8();
+      novaCarteiraResponse = new ObjectMapper().readValue(novaCarteiraResponseString, NovaCarteiraResponse.class);
+      logger.info("Falha ao associar carteira ao cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero() +
+              ". Carteira: " + novaCarteiraRequest.getCarteira() + ". Email: " + novaCarteiraRequest.getEmail()));
+
+      return ResponseEntity.unprocessableEntity().body(novaCarteiraResponse);
+
+    } catch (FeignException ex) {
+      logger.info("Falha ao associar carteira ao cartão " + OfuscadorCartao.ofuscaIdDoCartao(cartao.getNumero() +
+              ". Carteira: " + novaCarteiraRequest.getCarteira() + ". Email: " + novaCarteiraRequest.getEmail()));
+
+      throw new ApiException(null, "Sistema de associar carteiras temporariamente indisponível.", SERVICE_UNAVAILABLE);
+    }
   }
 }

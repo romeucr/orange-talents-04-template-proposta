@@ -17,6 +17,9 @@ public class ConsultaPropostaResponse {
   private PropostaStatus status;
   private CartaoConsultaPropostaResponse cartao;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public ConsultaPropostaResponse() {
   }
 

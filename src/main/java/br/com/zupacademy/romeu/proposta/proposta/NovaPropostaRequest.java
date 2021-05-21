@@ -28,9 +28,9 @@ public class NovaPropostaRequest {
   @NotNull @Positive
   private BigDecimal salario;
 
-  /**
-   * @deprecated pra uso do hibernate somente
-   */
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public NovaPropostaRequest(){}
 
   public NovaPropostaRequest(@NotBlank String documento, @NotBlank @Email String email,

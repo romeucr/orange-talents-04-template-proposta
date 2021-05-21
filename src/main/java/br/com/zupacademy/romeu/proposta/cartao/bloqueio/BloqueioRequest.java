@@ -4,6 +4,9 @@ public class BloqueioRequest {
 
   private String sistemaResponsavel;
 
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public BloqueioRequest() {}
 
   public BloqueioRequest(String sistemaResponsavel) {

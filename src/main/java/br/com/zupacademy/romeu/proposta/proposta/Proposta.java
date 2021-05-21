@@ -45,9 +45,9 @@ public class Proposta {
   @OneToOne
   private Cartao cartao;
 
-  /**
-   * @deprecated pra uso do hibernate somente
-   */
+  /* @deprecated - para uso exclusivo do hibernate
+   * */
+  @Deprecated
   public Proposta() {
   }
 

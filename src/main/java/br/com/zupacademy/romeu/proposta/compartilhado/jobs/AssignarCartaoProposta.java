@@ -4,7 +4,7 @@ import br.com.zupacademy.romeu.proposta.cartao.Cartao;
 import br.com.zupacademy.romeu.proposta.cartao.CartaoRepository;
 import br.com.zupacademy.romeu.proposta.cartao.CartaoResponse;
 import br.com.zupacademy.romeu.proposta.cartao.VerificaCartaoClient;
-import br.com.zupacademy.romeu.proposta.compartilhado.Ofuscadores;
+import br.com.zupacademy.romeu.proposta.compartilhado.ofuscadores.OfuscadorCartao;
 import br.com.zupacademy.romeu.proposta.proposta.Proposta;
 import br.com.zupacademy.romeu.proposta.proposta.PropostaRepository;
 import br.com.zupacademy.romeu.proposta.proposta.enums.PropostaStatus;
@@ -62,7 +62,7 @@ public class AssignarCartaoProposta {
         Cartao cartao = cartaoResp.toModel(propostaRepository);
         cartaoRepository.save(cartao);
         logger.info("Cartão ID " +
-                Ofuscadores.ofuscaIdDoCartao(cartaoResp.getId()) + " gravado com sucesso!");
+                OfuscadorCartao.ofuscaIdDoCartao(cartaoResp.getId()) + " gravado com sucesso!");
 
         Optional<Proposta> optProposta = propostaRepository.findById(Long.parseLong(cartaoResp.getIdProposta()));
         Proposta proposta = optProposta.get();
