@@ -9,8 +9,7 @@ import javax.validation.constraints.NotNull;
 
 public class NovaCarteiraRequest {
 
-  @Email
-  @NotBlank
+  @Email @NotBlank
   private String email;
 
   @NotNull
@@ -20,12 +19,11 @@ public class NovaCarteiraRequest {
   /* @deprecated - para uso exclusivo do hibernate
    * */
   @Deprecated
-  public NovaCarteiraRequest() {
-  }
+  public NovaCarteiraRequest() {}
 
-  public NovaCarteiraRequest(String email, EmissorCarteira carteira) {
+  public NovaCarteiraRequest(String email, EmissorCarteira emissor) {
     this.email = email;
-    this.carteira = carteira;
+    this.carteira = emissor;
   }
 
   public String getEmail() {
@@ -36,8 +34,8 @@ public class NovaCarteiraRequest {
     return carteira;
   }
 
-  public Carteira toModel(String carteiraId) {
-    return new Carteira(carteiraId, this.email, this.carteira);
+  public Carteira toModel(String id){
+    return new Carteira(id, this.email, this.carteira);
   }
 
 }

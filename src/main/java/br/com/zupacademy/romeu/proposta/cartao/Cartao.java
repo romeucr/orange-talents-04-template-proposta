@@ -138,6 +138,7 @@ public class Cartao {
   @Transactional
   public URI validaEAdicionaCarteira(CartaoRepository cartaoRepository, CarteiraRepository carteiraRepository,
                                      Carteira novaCarteira, UriComponentsBuilder uriBuilder, Logger logger) {
+
     if (this.possuiBloqueioAtivo()) {
       logger.info("Falha ao associar carteira ao cartão " + OfuscadorCartao.ofuscaIdDoCartao(this.numero +
               ". Carteira: " + novaCarteira.getEmissor() + ". Email: " + novaCarteira.getEmail()));
