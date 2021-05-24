@@ -9,4 +9,5 @@ public interface AnalisePropostaClient {
 
   @PostMapping("/api/solicitacao")
   AnalisePropostaResponse analisaProposta(@RequestBody AnalisePropostaRequest analisePropostaRequest);
+
 }

@@ -13,7 +13,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests(authorizeRequests ->
             authorizeRequests
-                    .antMatchers(HttpMethod.GET, "/actuator/**").hasAuthority("SCOPE_proposta-scope")
+                    .antMatchers(HttpMethod.GET, "/actuator/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/propostas/**").hasAuthority("SCOPE_proposta-scope")
                     .antMatchers(HttpMethod.GET, "/cartoes/**").hasAuthority("SCOPE_proposta-scope")
                     .antMatchers(HttpMethod.POST, "/cartoes/**").hasAuthority("SCOPE_proposta-scope")
@@ -22,4 +22,5 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     )
             .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
   }
+
 }
