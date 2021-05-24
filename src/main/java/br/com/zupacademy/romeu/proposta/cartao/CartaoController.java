@@ -70,7 +70,7 @@ public class CartaoController {
    * ============================== */
   @Transactional
   @PostMapping("/cartoes/{cartaoId}/biometrias")
-  public ResponseEntity<?> adicionaBiometria(@PathVariable("cartaoId") @NotNull Long cartaoId,
+  public ResponseEntity<?> adicionaBiometria(@PathVariable("cartaoId") @NotNull String cartaoId,
                                              @Valid @RequestBody BiometriaRequest biometriaRequest,
                                              UriComponentsBuilder uriBuilder) {
 
@@ -79,7 +79,7 @@ public class CartaoController {
     logger.info("Biometria ID " + biometria.getId() + " gravada com sucesso no banco de dados!");
 
     // ROLLBACK da biometria caso o cartão não seja encontrado no banco
-    Optional<Cartao> optCartao = cartaoRepository.findById(cartaoId);
+    Optional<Cartao> optCartao = cartaoRepository.findByNumero(cartaoId);
     if (optCartao.isEmpty()) {
       biometriaRepository.delete(biometria);
       logger.info("Biometria ID " + biometria.getId() + " removida com sucesso no banco de dados! ROLLBACK");
