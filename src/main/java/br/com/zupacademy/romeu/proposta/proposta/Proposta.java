@@ -4,6 +4,7 @@ import br.com.zupacademy.romeu.proposta.cartao.Cartao;
 import br.com.zupacademy.romeu.proposta.compartilhado.validacoes.CPFOuCNPJ;
 import br.com.zupacademy.romeu.proposta.proposta.analise.AnalisePropostaResponse;
 import br.com.zupacademy.romeu.proposta.proposta.enums.PropostaStatus;
+import org.hibernate.annotations.ColumnTransformer;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -23,6 +24,8 @@ public class Proposta {
 
   @NotBlank
   @CPFOuCNPJ
+  @ColumnTransformer(read = "AES_DECRYPT(UNHEX(documento), 'encryption.password')",
+          write = "HEX(AES_ENCRYPT(?, 'encryption.password'))")
   private String documento;
 
   @NotBlank
